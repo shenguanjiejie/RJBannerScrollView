@@ -7,7 +7,7 @@
 //
 
 #import "RJBannerCollectionCell.h"
-#import "RJBannerInfo.h"
+#import "RJBannerData.h"
 
 @implementation RJBannerCollectionCell
 
@@ -35,19 +35,21 @@
     return self;
 }
 
-- (void)setBannerInfo:(RJBannerInfo *)bannerInfo{
+- (void)setBannerData:(RJBannerData *)bannerData{
 
-    _bannerInfo = bannerInfo;
-    if (bannerInfo.imageName) {
-        _imageView.image = [UIImage imageNamed:bannerInfo.imageName];
+    _bannerData = bannerData;
+    
+    if (!bannerData) return;
+    
+    if (bannerData.imageName) {
+        _imageView.image = [UIImage imageNamed:bannerData.imageName];
     }else{
-        [_imageView sd_setImageWithURL:[NSURL URLWithString:bannerInfo.imageUrl] placeholderImage:self.placeholderImage];
+        [_imageView sd_setImageWithURL:[NSURL URLWithString:bannerData.imageUrl] placeholderImage:self.placeholderImage];
     }
     
-    if (bannerInfo.title) {
-        _titleLab.text = bannerInfo.title;
+    if (bannerData.title) {
+        _titleLab.text = bannerData.title;
     }
-    
 }
 
 @end

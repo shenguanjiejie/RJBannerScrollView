@@ -7,6 +7,7 @@
 //
 
 #import "RJCollectionViewFlowLayout.h"
+#import "RJBannerInfo.h"
 
 @interface RJCollectionViewFlowLayout ()
 {
@@ -16,6 +17,7 @@
 
 @implementation RJCollectionViewFlowLayout
 
+#if 0 //2016-10-18
 /**
  *  这个方法用来设置scrollview停止滚动那一刻的位置
  *
@@ -24,13 +26,16 @@
  */
 - (CGPoint)targetContentOffsetForProposedContentOffset:(CGPoint)proposedContentOffset withScrollingVelocity:(CGPoint)velocity
 {
+
+    CGPoint point = [super targetContentOffsetForProposedContentOffset:proposedContentOffset withScrollingVelocity:velocity];
+
     //如果正在调整位置,或正在拖拽,不能使用当前的offset,因为当前是野offset
-    if (self.currentOffset.x == 0) {
-        self.currentOffset = self.collectionView.contentOffset;
+    if ([RJBannerInfo sharedRJBannerInfo].currentOffset.x == 0) {
+        [RJBannerInfo sharedRJBannerInfo].currentOffset = self.collectionView.contentOffset;
     }
-    
+//    NSLog(@"%s",__FUNCTION__);
 #if 0
-    NSLog(@"%s currentOffsetX = %f",__FUNCTION__,self.currentOffset.x);
+    
     
     //1.计算出scorllview最后会停留的位置
     CGRect lastRect ;
@@ -65,39 +70,51 @@
     }
 #endif
 
-    CGFloat currentCenter = self.currentOffset.x + self.collectionView.bounds.size.width / 2.0;
-    NSIndexPath *currentIndexPath = nil;
-    CGRect movedRect ;
-    movedRect.size = self.collectionView.frame.size;
-    //    lastRect.origin = proposedContentOffset;
-    movedRect.origin = self.collectionView.contentOffset;
+////    2016-10-18 modify
+//    CGFloat currentCenter = self.currentOffset.x + self.collectionView.bounds.size.width / 2.0;
+//    NSIndexPath *currentIndexPath = nil;
+//    CGRect movedRect ;
+//    movedRect.size = self.collectionView.frame.size;
+//    movedRect.origin = self.collectionView.contentOffset;
+//    
+//    NSArray *array = [super layoutAttributesForElementsInRect:movedRect];
+//    CGFloat distance = 0;
+//    for (UICollectionViewLayoutAttributes *attrs in array) {
+//        if (ABS(attrs.center.x - currentCenter) <= distance) {
+//            distance = ABS(attrs.center.x - currentCenter);
+//            currentIndexPath = attrs.indexPath;
+//        }
+//    }
     
-    NSArray *array = [super layoutAttributesForElementsInRect:movedRect];
-    CGFloat distance = 0;
-    for (UICollectionViewLayoutAttributes *attrs in array) {
-        if (ABS(attrs.center.x - currentCenter) <= distance) {
-            distance = ABS(attrs.center.x - currentCenter);
-            currentIndexPath = attrs.indexPath;
+    UICollectionViewLayoutAttributes *currentLayout = [self.collectionView layoutAttributesForItemAtIndexPath:[RJBannerInfo sharedRJBannerInfo].currentIndexPath];
+    
+    long step = proposedContentOffset.x > [RJBannerInfo sharedRJBannerInfo].currentOffset.x ? 1 : -1;
+    NSIndexPath *newIndexPath = [NSIndexPath indexPathForRow:[RJBannerInfo sharedRJBannerInfo].currentIndexPath.row + step inSection:0];
+    UICollectionViewLayoutAttributes *newLayout = [self.collectionView layoutAttributesForItemAtIndexPath:newIndexPath];
+    //UICollectionViewCell *nextCell = [self.collectionView cellForItemAtIndexPath:newIndexPath];
+    CGFloat pageWidth = self.minimumLineSpacing + currentLayout.size.width / 2.0 + newLayout.size.width / 2.0;
+    CGFloat nowDistance = ABS([RJBannerInfo sharedRJBannerInfo].currentOffset.x - proposedContentOffset.x);
+    
+    if (nowDistance > pageWidth / 2.0) {
+        UICollectionViewCell *cell = [self.collectionView cellForItemAtIndexPath:[RJBannerInfo sharedRJBannerInfo].currentIndexPath];
+        if (cell) {
+            [UIView animateWithDuration:[RJBannerInfo sharedRJBannerInfo].transformDuration animations:^{
+                cell.transform = [RJBannerInfo sharedRJBannerInfo].centerCellTransform;
+            }];
         }
+        [RJBannerInfo sharedRJBannerInfo].currentIndexPath = newIndexPath;
+        [RJBannerInfo sharedRJBannerInfo].currentOffset = CGPointMake([RJBannerInfo sharedRJBannerInfo].currentOffset.x + step * pageWidth, 0);
     }
     
-    UICollectionViewCell *cell = [self.collectionView cellForItemAtIndexPath:currentIndexPath];
-    
-    if (proposedContentOffset.x < self.currentOffset.x){
-        self.currentIndexPath = [NSIndexPath indexPathForRow:currentIndexPath.row - 1 inSection:0];
-        UICollectionViewCell *nextCell = [self.collectionView cellForItemAtIndexPath:self.currentIndexPath];
-        self.currentOffset = CGPointMake(self.currentOffset.x - (self.minimumLineSpacing + cell.frame.size.width / 2.0 + nextCell.frame.size.width / 2.0), 0);
-    }else{
-        self.currentIndexPath = [NSIndexPath indexPathForRow:currentIndexPath.row + 1 inSection:0];
-        UICollectionViewCell *nextCell = [self.collectionView cellForItemAtIndexPath:self.currentIndexPath];
-        self.currentOffset = CGPointMake(self.currentOffset.x + (self.minimumLineSpacing +cell.frame.size.width / 2.0 + nextCell.frame.size.width / 2.0), 0);
-    }
-
-    return self.currentOffset;
+    NSLog(@"%s currentIndexPath = %@",__FUNCTION__,[RJBannerInfo sharedRJBannerInfo].currentIndexPath);
+    return [RJBannerInfo sharedRJBannerInfo].currentOffset;
 }
+#endif
 /**
  * 只要边界发生改变就会重新布局：重新调用layoutAttributesForElementsInRect：这个方法获得cell的所有布局属性
  */
+
+#if 0 //2016-10-18
 - (BOOL)shouldInvalidateLayoutForBoundsChange:(CGRect)newBounds
 {
 //    UICollectionViewCell *cell = [self.collectionView cellForItemAtIndexPath:self.currentIndexPath];
@@ -147,14 +164,18 @@
     
     CGFloat distance = 0;
     UICollectionViewLayoutAttributes *nearAttr = [[UICollectionViewLayoutAttributes alloc] init];
-    NSLog(@"%s",__FUNCTION__);
+//    NSLog(@"%s",__FUNCTION__);
     //遍历数组中的UICollectionViewLayoutAttributes
     for (UICollectionViewLayoutAttributes *attrs in array) {
-        if (CGRectIntersectsRect(visiableRect, attrs.frame) && attrs.indexPath.row == self.currentIndexPath.row) {
-            attrs.transform = self.centerCellTransform;
-            break;
-        }
-        
+        UICollectionViewCell *cell = [self.collectionView cellForItemAtIndexPath:attrs.indexPath];
+        [UIView animateWithDuration:0.3 animations:^{
+            if (CGRectIntersectsRect(visiableRect, attrs.frame) && attrs.indexPath.row == self.currentIndexPath.row) {
+                cell.layer.affineTransform = self.centerCellTransform;
+            }else{
+                cell.layer.affineTransform = CGAffineTransformMakeScale(1.0, 1.0);
+            }
+        }];
+
 #if 0
         /*只对显示在屏幕的cell进行缩放*/
         /*判断矩形框是否和屏幕相交*/
@@ -179,6 +200,6 @@
     return array;
 }
 
-
+#endif
 
 @end

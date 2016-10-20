@@ -1,14 +1,14 @@
 //
-//  RJBannerInfo.h
+//  RJBannerData.h
 //  duDu
 //
-//  Created by RuiJie on 16/10/11.
+//  Created by RuiJie on 16/10/18.
 //  Copyright © 2016年 youd. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 
-@interface RJBannerInfo : NSObject
+@interface RJBannerData : NSObject
 
 @property (copy, nonatomic) NSString *title;
 

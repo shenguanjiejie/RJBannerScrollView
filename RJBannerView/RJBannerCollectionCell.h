@@ -8,11 +8,11 @@
 
 #import <UIKit/UIKit.h>
 
-@class RJBannerInfo;
+@class RJBannerData;
 
 @interface RJBannerCollectionCell : UICollectionViewCell
 
-@property (strong, nonatomic) RJBannerInfo *bannerInfo;
+@property (strong, nonatomic) RJBannerData *bannerData;
 
 @property (nonatomic, strong) UIImageView *imageView;
 

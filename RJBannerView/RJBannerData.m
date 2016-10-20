@@ -1,14 +1,14 @@
 //
-//  RJBannerInfo.m
+//  RJBannerData.m
 //  duDu
 //
-//  Created by RuiJie on 16/10/11.
+//  Created by RuiJie on 16/10/18.
 //  Copyright © 2016年 youd. All rights reserved.
 //
 
-#import "RJBannerInfo.h"
+#import "RJBannerData.h"
 
-@implementation RJBannerInfo
+@implementation RJBannerData
 
 -(instancetype)initWithTitle:(NSString *)title imageName:(NSString *)imageName{
     if (self = [super init]) {
