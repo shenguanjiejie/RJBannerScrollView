@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "RJBannerData.h"
+#import "RJItemInfo.h"
 
 @protocol RJBannerViewDelegate;
 @protocol RJBannerViewDataSource;
@@ -34,18 +34,9 @@
  */
 @property (nonatomic, assign) CGFloat timeInterval;
 
-/**
- cell伸缩动画时间,默认0.3s
- */
-@property (nonatomic, assign) CGFloat transformDuration;
-
 @property (nonatomic, assign) CGAffineTransform centerCellTransform;
 
-@property (nonatomic, strong) UIImage *placeholderImage;
-
 @property (nonatomic, readonly, strong) UICollectionView *collectionView;
-
-//@property (nonatomic, strong) NSArray<RJBannerData *> *bannerDataArr;
 
 @property (nonatomic,weak) id<RJBannerViewDelegate> delegate;
 
@@ -57,12 +48,11 @@
 
 @end
 
-
 @protocol RJBannerViewDataSource <NSObject>
 @required
 - (NSInteger)numberOfItemsInRJBannerView:(RJBannerView *)bannerView;
 
-- (RJBannerData *)RJBannerView:(RJBannerView *)bannerView bannerDataForItemAtIndex:(unsigned long)index;
+- (RJItemInfo *)RJBannerView:(RJBannerView *)bannerView itemInfoForItemAtIndex:(unsigned long)index;
 
 @end
 
@@ -82,5 +72,7 @@
 - (void)RJBannerView:(RJBannerView *)bannerView willDisplayingCell:(UICollectionViewCell *)cell atIndex:(unsigned long)index;
 
 - (void)RJBannerView:(RJBannerView *)bannerView didEndDisplayingCell:(UICollectionViewCell *)cell atIndex:(unsigned long)index;
+
+- (void)RJBannerView:(RJBannerView *)bannerView willScrollToIndex:(unsigned long)index;
 
 @end

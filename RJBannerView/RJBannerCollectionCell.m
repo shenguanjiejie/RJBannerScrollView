@@ -7,7 +7,11 @@
 //
 
 #import "RJBannerCollectionCell.h"
-#import "RJBannerData.h"
+#import "RJItemInfo.h"
+
+@interface RJBannerCollectionCell ()
+
+@end
 
 @implementation RJBannerCollectionCell
 
@@ -15,6 +19,7 @@
 {
     self = [super initWithFrame:frame];
     if (self) {
+
         _imageView = [[UIImageView alloc]init];
         _imageView.translatesAutoresizingMaskIntoConstraints = NO;
         _imageView.contentMode = UIViewContentModeScaleToFill;
@@ -35,21 +40,27 @@
     return self;
 }
 
-- (void)setBannerData:(RJBannerData *)bannerData{
+- (void)setItemInfo:(RJItemInfo *)itemInfo{
 
-    _bannerData = bannerData;
+    _itemInfo = itemInfo;
     
-    if (!bannerData) return;
+    if (!itemInfo) return;
     
-    if (bannerData.imageName) {
-        _imageView.image = [UIImage imageNamed:bannerData.imageName];
+    if (itemInfo.imageName) {
+        _imageView.image = [UIImage imageNamed:itemInfo.imageName];
     }else{
-        [_imageView sd_setImageWithURL:[NSURL URLWithString:bannerData.imageUrl] placeholderImage:self.placeholderImage];
+        [_imageView sd_setImageWithURL:[NSURL URLWithString:itemInfo.imageUrl] placeholderImage:itemInfo.placeholderImage];
     }
     
-    if (bannerData.title) {
-        _titleLab.text = bannerData.title;
-    }
+    _titleLab.text = itemInfo.title ? itemInfo.title : @"";
+    _titleLab.textColor = itemInfo.textColor;
+    _titleLab.font = itemInfo.textFont;
+    
+    self.layer.shadowColor = itemInfo.shadowColor.CGColor;
+    self.layer.shadowOpacity = itemInfo.shadowOpacity;
+    self.layer.shadowOffset = itemInfo.shadowOffset;
+    self.layer.shadowRadius = itemInfo.shadowRadius;
+    
 }
 
 @end

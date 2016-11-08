@@ -10,11 +10,7 @@
 
 @interface RJBannerData : NSObject
 
-@property (copy, nonatomic) NSString *title;
 
-@property (copy, nonatomic) NSString *imageName;
-
-@property (nonatomic, copy) NSString *imageUrl;
 
 -(instancetype)initWithTitle:(NSString *)title imageName:(NSString *)imageName;
 

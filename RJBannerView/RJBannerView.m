@@ -9,7 +9,6 @@
 #import "RJBannerView.h"
 #import "RJBannerCollectionCell.h"
 #import "RJCollectionViewFlowLayout.h"
-#import "RJBannerInfo.h"
 
 #define RJTotleRow (5000 * _count)
 #define RJDefaultRow (RJTotleRow * 0.5)
@@ -37,7 +36,6 @@
     if (self) {
         _timeInterval = 3.0;
         _autoScroll = YES;
-        _transformDuration = 0.3;
         _centerCellTransform = CGAffineTransformMakeScale(1.0, 1.0);
 
         RJCollectionViewFlowLayout *layout= [[RJCollectionViewFlowLayout alloc]init];
@@ -122,36 +120,43 @@
 
 - (void)reloadData{
     [self.collectionView reloadData];
-
+    
     dispatch_async(dispatch_get_main_queue(), ^{
-        NSIndexPath *indexPath = [NSIndexPath indexPathForItem:RJDefaultRow inSection:0];
-        [_collectionView scrollToItemAtIndexPath:indexPath atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:NO];
-        _currentOffset = _collectionView.contentOffset;
-        _currentIndexPath = indexPath;
-        if (!_timer) {
-            [self addTimer];
+        if (RJDefaultRow > 0) {
+            NSIndexPath *indexPath = [NSIndexPath indexPathForItem:RJDefaultRow inSection:0];
+            [_collectionView scrollToItemAtIndexPath:indexPath atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:NO];
+            _currentOffset = _collectionView.contentOffset;
+            _currentIndexPath = indexPath;
+            if (!_timer && self.isAutoScroll) {
+                [self addTimer];
+            }
         }
     });
 }
 
 - (void)RJBannerView:(RJBannerView *)bannerView willAutoScrollToIndex:(unsigned long)index indexPath:(NSIndexPath *)indexPath{
     
-    self.pageControl.currentPage = index;
+    
     UICollectionViewCell *nextCell = [_collectionView cellForItemAtIndexPath:indexPath];
     UICollectionViewCell *currentCell = [_collectionView cellForItemAtIndexPath:[NSIndexPath indexPathForRow:indexPath.row - 1 inSection:0]];
-#if 0
-    [UIView animateWithDuration:self.transformDuration animations:^{
-        currentCell.layer.affineTransform = CGAffineTransformMakeScale(1.0, 1.0);
-        nextCell.layer.affineTransform = self.centerCellTransform;
-    }];
-#endif
+
     //为layout设置将要跳转到的cell位置的offset
     _currentOffset = CGPointMake(_collectionView.contentOffset.x + self.minimumLineSpacing + currentCell.frame.size.width / 2.0 + nextCell.frame.size.width / 2.0, 0);
     _currentIndexPath = indexPath;
     
+    if (self.pageControl) {
+        self.pageControl.currentPage = index;
+    }
+    
+    if ([self.delegate respondsToSelector:@selector(RJBannerView:willScrollToIndex:)]) {
+        [self.delegate RJBannerView:self willScrollToIndex:index];
+    }
+    
     if ([self.delegate respondsToSelector:@selector(RJBannerView:willAutoScrollToIndex:)]) {
         [self.delegate RJBannerView:self willAutoScrollToIndex:index];
     }
+    
+    
 }
 
 - (void)removeTimer
@@ -174,6 +179,10 @@
 {
     long row = 0;
     NSArray *indexs =  [_collectionView indexPathsForVisibleItems];
+    if (!indexs) {
+        return;
+    }
+    
     for (NSIndexPath *index in indexs) {
         row = MAX(row, index.row);
     }
@@ -200,14 +209,15 @@
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath{
     static NSString *ID = @"Cell";
     RJBannerCollectionCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:ID forIndexPath:indexPath];
+    
     if (indexPath.row == RJDefaultRow) {
         cell.transform = self.centerCellTransform;
     }
-    cell.placeholderImage = self.placeholderImage;
-    if ([self.dataSource respondsToSelector:@selector(RJBannerView:bannerDataForItemAtIndex:)]) {
-       cell.bannerData = [self.dataSource RJBannerView:self bannerDataForItemAtIndex:RJIndex(indexPath.row)];
+    
+    if ([self.dataSource respondsToSelector:@selector(RJBannerView:itemInfoForItemAtIndex:)]) {
+        cell.itemInfo = [self.dataSource RJBannerView:self itemInfoForItemAtIndex:RJIndex(indexPath.row)];
     }
-
+    
 //    cell.titleLab.text = [NSString stringWithFormat:@"indexRow = %ld",indexPath.row];
     
     return cell;
@@ -215,13 +225,13 @@
 
 - (void)collectionView:(UICollectionView *)collectionView willDisplayCell:(UICollectionViewCell *)cell forItemAtIndexPath:(NSIndexPath *)indexPath{
     if ([self.delegate respondsToSelector:@selector(RJBannerView:willDisplayingCell:atIndex:)]) {
-        [self.delegate RJBannerView:self willDisplayingCell:cell atIndex:self.pageControl.currentPage];
+        [self.delegate RJBannerView:self willDisplayingCell:cell atIndex:RJIndex(indexPath.row)];
     }
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didEndDisplayingCell:(UICollectionViewCell *)cell forItemAtIndexPath:(NSIndexPath *)indexPath{
     if ([self.delegate respondsToSelector:@selector(RJBannerView:didEndDisplayingCell:atIndex:)]) {
-        [self.delegate RJBannerView:self didEndDisplayingCell:cell atIndex:self.pageControl.currentPage];
+        [self.delegate RJBannerView:self didEndDisplayingCell:cell atIndex:RJIndex(indexPath.row)];
     }
 }
 
@@ -253,9 +263,10 @@
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView{
     
     NSArray *indexPaths = [_collectionView indexPathsForVisibleItems];
+    
     CGFloat centerX = scrollView.contentOffset.x + scrollView.frame.size.width / 2.0;
-    CGFloat scale = 1;
-//    NSLog(@"%s ",__FUNCTION__);
+    static CGFloat scale = 1;
+    //NSLog(@"%s ",__FUNCTION__);
     
     for (NSIndexPath *indexPath in indexPaths) {
         UICollectionViewCell *cell = [_collectionView cellForItemAtIndexPath:indexPath];
@@ -269,25 +280,43 @@
 
 - (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset{
     UICollectionViewLayoutAttributes *currentLayout = [_collectionView layoutAttributesForItemAtIndexPath:_currentIndexPath];
-    long step = targetContentOffset->x > _currentOffset.x ? 1 : -1;
+
+    static int step;
+    if (ABS(velocity.x) > 0.1) {
+        step = velocity.x > 0 ? 1 : -1;
+    }else{
+        step = scrollView.contentOffset.x > _currentOffset.x ? 1 : -1;
+    }
+
     NSIndexPath *newIndexPath = [NSIndexPath indexPathForRow:_currentIndexPath.row + step inSection:0];
     UICollectionViewLayoutAttributes *newLayout = [_collectionView layoutAttributesForItemAtIndexPath:newIndexPath];
     CGFloat pageWidth = self.minimumLineSpacing + currentLayout.size.width / 2.0 + newLayout.size.width / 2.0;
     CGFloat nowDistance = ABS(_currentOffset.x - scrollView.contentOffset.x);
     
-    if (targetContentOffset->x != scrollView.contentOffset.x || nowDistance > pageWidth / 2.0) {
+//    NSLog(@"%s %@",__FUNCTION__,_currentIndexPath);
+    
+    if (ABS(velocity.x) > 0.1 || nowDistance > pageWidth / 2.0) {
         _currentIndexPath = newIndexPath;
         _currentOffset = CGPointMake(_currentOffset.x + step * pageWidth, 0);
-        self.pageControl.currentPage = RJIndex(_currentIndexPath.row);
+        if (self.pageControl) {
+            self.pageControl.currentPage = RJIndex(_currentIndexPath.row);
+        }
+        
+//        NSLog(@"%@",newIndexPath);
+        if ([self.delegate respondsToSelector:@selector(RJBannerView:willScrollToIndex:)]) {
+            [self.delegate RJBannerView:self willScrollToIndex:RJIndex(_currentIndexPath.row)];
+        }
     }
+    
     *targetContentOffset = _currentOffset;
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{
-//    NSLog(@"%s 滚动动画停止了",__FUNCTION__);
     if (scrollView.isTracking) return;
 
-    [self addTimer];
+    if (self.isAutoScroll) {
+        [self addTimer];
+    }
 }
 
 @end

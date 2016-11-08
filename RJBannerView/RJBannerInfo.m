@@ -10,7 +10,7 @@
 
 @implementation RJBannerInfo
 
-SingletonM(RJBannerInfo)
+
 
 
 

@@ -8,18 +8,14 @@
 
 #import <UIKit/UIKit.h>
 
-@class RJBannerData;
+@class RJItemInfo;
 
 @interface RJBannerCollectionCell : UICollectionViewCell
 
-@property (strong, nonatomic) RJBannerData *bannerData;
+@property (strong, nonatomic) RJItemInfo *itemInfo;
 
 @property (nonatomic, strong) UIImageView *imageView;
 
 @property (nonatomic, strong) UILabel *titleLab;
-
-@property (nonatomic, strong) UIImage *placeholderImage;
-
-
 
 @end
