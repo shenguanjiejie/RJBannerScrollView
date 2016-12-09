@@ -19,7 +19,7 @@
 {
     self = [super initWithFrame:frame];
     if (self) {
-
+        
         _imageView = [[UIImageView alloc]init];
         _imageView.translatesAutoresizingMaskIntoConstraints = NO;
         _imageView.contentMode = UIViewContentModeScaleToFill;
@@ -41,7 +41,7 @@
 }
 
 - (void)setItemInfo:(RJItemInfo *)itemInfo{
-
+    
     _itemInfo = itemInfo;
     
     if (!itemInfo) return;

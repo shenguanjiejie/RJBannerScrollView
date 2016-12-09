@@ -7,7 +7,6 @@
 //
 
 #import "RJCollectionViewFlowLayout.h"
-#import "RJBannerInfo.h"
 
 @interface RJCollectionViewFlowLayout ()
 {

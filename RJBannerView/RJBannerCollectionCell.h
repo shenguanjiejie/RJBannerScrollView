@@ -18,4 +18,7 @@
 
 @property (nonatomic, strong) UILabel *titleLab;
 
+@property (nonatomic, strong) UIView *customView;
+
+
 @end

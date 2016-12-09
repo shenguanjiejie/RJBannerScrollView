@@ -22,6 +22,7 @@
 
 @property (nonatomic, strong) UIImage *placeholderImage;
 
+
 /**
  阴影透明度
  */
