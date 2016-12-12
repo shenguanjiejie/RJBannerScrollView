@@ -14,11 +14,4 @@
 
 @property (strong, nonatomic) RJItemInfo *itemInfo;
 
-@property (nonatomic, strong) UIImageView *imageView;
-
-@property (nonatomic, strong) UILabel *titleLab;
-
-@property (nonatomic, strong) UIView *customView;
-
-
 @end
