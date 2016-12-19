@@ -10,7 +10,10 @@
 #import "RJItemInfo.h"
 
 @interface RJBannerCollectionCell ()
-
+{
+    UIImageView *_imageView;
+    UILabel *_titleLab;
+}
 @end
 
 @implementation RJBannerCollectionCell
@@ -32,8 +35,9 @@
         [self addSubview:_titleLab];
         
         NSDictionary *views = NSDictionaryOfVariableBindings(_imageView,_titleLab);
-        NSDictionary *metrics = @{@"margin":@5,@"titleLabH":@20};
+        NSDictionary *metrics = @{@"margin":@5,@"titleLabH":@30};
         [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_imageView]|" options:0 metrics:nil views:views]];
+        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_titleLab]|" options:0 metrics:nil views:views]];
         [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_titleLab(titleLabH)]" options:0 metrics:metrics views:views]];
         [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_imageView]|" options:0 metrics:metrics views:views]];
     }
@@ -46,12 +50,16 @@
     
     if (!itemInfo) return;
     
+    _imageView.contentMode = itemInfo.imageViewContentMode;
+    
     if (itemInfo.imageName) {
         _imageView.image = [UIImage imageNamed:itemInfo.imageName];
     }else{
         [_imageView sd_setImageWithURL:[NSURL URLWithString:itemInfo.imageUrl] placeholderImage:itemInfo.placeholderImage];
     }
     
+    
+    _titleLab.textAlignment = itemInfo.textAligment;
     _titleLab.text = itemInfo.title ? itemInfo.title : @"";
     _titleLab.textColor = itemInfo.textColor;
     _titleLab.font = itemInfo.textFont;
